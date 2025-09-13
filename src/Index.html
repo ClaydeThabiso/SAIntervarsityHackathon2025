@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BridgeBox - Smart Budgeting</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-box-open"></i>
+            </div>
+            <h1>BridgeBox</h1>
+            <p class="tagline">Your future self will thank you</p>
+        </header>
+        
+        <div id="setup-prompt" class="setup-prompt">
+            <h2>Welcome to BridgeBox!</h2>
+            <p>Get started by setting your initial balance and creating your first financial box.</p>
+            <button class="btn btn-primary" onclick="editBalance()">
+                <i class="fas fa-pencil-alt"></i> Set Initial Balance
+            </button>
+        </div>
+        
+        <div class="dashboard">
+            <div class="card summary-card">
+                <div class="summary-item">
+                    <h3>Total Balance</h3>
+                    <div id="total-value" class="summary-value">R0.00</div>
+                    <i class="fas fa-edit edit-balance" onclick="editBalance()"></i>
+                </div>
+                <div class="summary-item">
+                    <h3>Locked Amount</h3>
+                    <div id="locked-value" class="summary-value">R0.00</div>
+                </div>
+                <div class="summary-item">
+                    <h3>Available Now</h3>
+                    <div id="available-value" class="summary-value">R0.00</div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-box"></i> Your Boxes</h2>
+                <ul id="boxes-list" class="box-list">
+                    <!-- Box items will be added here dynamically -->
+                </ul>
+                <button id="add-box-btn" class="btn btn-primary add-box-btn">
+                    <i class="fas fa-plus"></i> Add New Box
+                </button>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-receipt"></i> Recent Transactions</h2>
+                <div id="transactions-list" class="transaction-log">
+                    <!-- Transactions will be added here dynamically -->
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>BridgeBox &copy; 2023 | Helping you manage your finances one box at a time</p>
+        </footer>
+    </div>
+    
+    <!-- Add Box Modal -->
+    <div id="add-box-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create New Box</h2>
+                <span class="close">&times;</span>
+            </div>
+            <form id="box-form">
+                <div class="form-group">
+                    <label for="box-name">Box Name</label>
+                    <input type="text" id="box-name" placeholder="e.g., Rent, Food, Data" required>
+                </div>
+                <div class="form-group">
+                    <label for="box-type">Box Type</label>
+                    <select id="box-type" required>
+                        <option value="fixed">Fixed Expense</option>
+                        <option value="weekly">Weekly Allowance</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="box-amount">Amount (R)</label>
+                    <input type="number" id="box-amount" min="1" step="any" required>
+                </div>
+                <div class="form-group" id="due-date-group">
+                    <label for="due-date">Due Date</label>
+                    <input type="date" id="due-date" required>
+                </div>
+                <div class="form-group" id="start-date-group" style="display: none;">
+                    <label for="start-date">Start Date</label>
+                    <input type="date" id="start-date">
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-box"></i> Create Box
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Onboarding Tutorial -->
+    <div id="onboarding" class="onboarding">
+        <div class="onboarding-content">
+            <h1 style="text-align: center; color: #2a6b3f; margin-bottom: 40px;">
+                Welcome to BridgeBox! <i class="fas fa-box-open"></i>
+            </h1>
+            
+            <div class="onboarding-steps">
+                <div class="onboarding-step">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <h2>Manage Your Lump Sum</h2>
+                    <p>BridgeBox helps you manage your monthly allowance or income by dividing it into purpose-specific boxes.</p>
+                </div>
+                
+                <div class="onboarding-step">
+                    <i class="fas fa-lock"></i>
+                    <h2>Lock Future Money</h2>
+                    <p>Money for future expenses is locked away until you need it, preventing early overspending.</p>
+                </div>
+                
+                <div class="onboarding-step">
+                    <i class="fas fa-chart-pie"></i>
+                    <h2>Track Your Spending</h2>
+                    <p>Easily track transactions against each box and see where your money is going.</p>
+                </div>
+                
+                <div class="onboarding-step">
+                    <i class="fas fa-calendar"></i>
+                    <h2>Never Miss a Due Date</h2>
+                    <p>Visual countdowns show you when locked funds will become available for your expenses.</p>
+                </div>
+            </div>
+            
+            <div class="progress-dots">
+                <div class="progress-dot active"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+            </div>
+            
+            <div style="text-align: center;">
+                <button class="btn btn-primary" onclick="finishOnboarding()">
+                    Get Started <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification">
+        <i class="fas fa-check-circle"></i> 
+        <span id="notification-text">Operation completed successfully!</span>
+    </div>
+
+   <script src="script.js"></script>
+</body>
+</html>
