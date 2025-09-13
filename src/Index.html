@@ -9,7 +9,7 @@
     
 </head>
 <body>
-    <div class="container">
+      <div class="container">
         <header>
             <div class="logo">
                 <i class="fas fa-box-open"></i>
@@ -17,6 +17,23 @@
             <h1>BridgeBox</h1>
             <p class="tagline">Your future self will thank you</p>
         </header>
+        
+        <!-- Gamification Bar -->
+        <div class="gamification-bar">
+            <div class="points-display">
+                <i class="fas fa-coins"></i>
+                <span id="points-value">0</span> Points
+                <div class="level-badge" id="level-badge">Level 1</div>
+            </div>
+            <div class="gamification-actions">
+                <button class="btn btn-secondary" onclick="showQuests()">
+                    <i class="fas fa-tasks"></i> Quests
+                </button>
+                <button class="btn btn-secondary" onclick="showAchievements()">
+                    <i class="fas fa-trophy"></i> Achievements
+                </button>
+            </div>
+        </div>
         
         <div id="setup-prompt" class="setup-prompt">
             <h2>Welcome to BridgeBox!</h2>
@@ -61,6 +78,22 @@
             </div>
         </div>
         
+        <!-- Quests Section -->
+        <div class="card quests-container" id="quests-section" style="display: none;">
+            <h2 class="card-title"><i class="fas fa-tasks"></i> Your Quests</h2>
+            <div id="quests-list">
+                <!-- Quests will be added here dynamically -->
+            </div>
+        </div>
+        
+        <!-- Achievements Section -->
+        <div class="card" id="achievements-section" style="display: none;">
+            <h2 class="card-title"><i class="fas fa-trophy"></i> Achievements</h2>
+            <div class="achievements-grid" id="achievements-list">
+                <!-- Achievements will be added here dynamically -->
+            </div>
+        </div>
+        
         <footer>
             <p>BridgeBox &copy; 2023 | Helping you manage your finances one box at a time</p>
         </footer>
@@ -88,14 +121,17 @@
                 <div class="form-group">
                     <label for="box-amount">Amount (R)</label>
                     <input type="number" id="box-amount" min="1" step="any" required>
+                    <p class="form-hint" id="amount-hint">Amount to allocate to this box</p>
                 </div>
                 <div class="form-group" id="due-date-group">
                     <label for="due-date">Due Date</label>
                     <input type="date" id="due-date" required>
+                    <p class="form-hint">When this expense is due (funds locked until this date)</p>
                 </div>
                 <div class="form-group" id="start-date-group" style="display: none;">
                     <label for="start-date">Start Date</label>
                     <input type="date" id="start-date">
+                    <p class="form-hint">When this weekly allowance begins</p>
                 </div>
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-box"></i> Create Box
@@ -104,10 +140,20 @@
         </div>
     </div>
 
+    <!-- Reward Popup -->
+    <div class="reward-popup" id="reward-popup">
+        <div class="reward-icon">
+            <i class="fas fa-trophy"></i>
+        </div>
+        <h3 class="reward-title" id="reward-title">Achievement Unlocked!</h3>
+        <p class="reward-desc" id="reward-desc">You've earned an achievement for your financial discipline.</p>
+        <button class="btn btn-primary" onclick="closeRewardPopup()">Awesome!</button>
+    </div>
+
     <!-- Onboarding Tutorial -->
     <div id="onboarding" class="onboarding">
         <div class="onboarding-content">
-            <h1 style="text-align: center; color: #2a6b3f; margin-bottom: 40px;">
+            <h1 style="text-align: center; color: var(--primary); margin-bottom: 40px;">
                 Welcome to BridgeBox! <i class="fas fa-box-open"></i>
             </h1>
             
@@ -131,9 +177,9 @@
                 </div>
                 
                 <div class="onboarding-step">
-                    <i class="fas fa-calendar"></i>
-                    <h2>Never Miss a Due Date</h2>
-                    <p>Visual countdowns show you when locked funds will become available for your expenses.</p>
+                    <i class="fas fa-gamepad"></i>
+                    <h2>Earn Rewards</h2>
+                    <p>Complete quests and earn achievements as you build better financial habits!</p>
                 </div>
             </div>
             
