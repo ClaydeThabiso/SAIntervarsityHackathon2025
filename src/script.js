@@ -1,4 +1,17 @@
-  // Empty data structure
+     // Performance optimization - debounce function
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Empty data structure
         let userData = {
             totalBalance: 0,
             boxes: [],
@@ -148,6 +161,8 @@
         const rewardPopup = document.getElementById('reward-popup');
         const rewardTitle = document.getElementById('reward-title');
         const rewardDesc = document.getElementById('reward-desc');
+        const progressDots = document.querySelectorAll('.progress-dot');
+        const onboardingSteps = document.querySelector('.onboarding-steps');
 
         // Event Listeners
         addBoxBtn.addEventListener('click', () => {
@@ -217,9 +232,14 @@
             document.getElementById('due-date').value = today;
             document.getElementById('start-date').value = today;
             
+            // Check all achievements on app load
+            checkAllAchievementsOnLoad();
+            
             // Show onboarding if first visit
-            if (!localStorage.getItem('brdgeBoxOnboarded')) {
-                onboarding.style.display = 'flex';
+            if (!localStorage.getItem('brgeBOnboarded')) {
+                setTimeout(() => {
+                    onboarding.style.display = 'flex';
+                }, 500);
             }
             
             // Show setup prompt if no balance is set
@@ -232,32 +252,59 @@
 
         // Save data to localStorage
         function saveData() {
-            localStorage.setItem('brdgeBoxData', JSON.stringify(userData));
+            // Use debounced version to prevent frequent saves
+            debouncedSave();
         }
+
+        // Actual save function
+        function performSave() {
+            localStorage.setItem('brigBData', JSON.stringify(userData));
+        }
+
+        // Create debounced save function
+        const debouncedSave = debounce(performSave, 1000);
 
         // Load data from localStorage
         function loadData() {
-            const savedData = localStorage.getItem('brdgeBoxData');
+            const savedData = localStorage.getItem('brigBData');
             if (savedData) {
-                userData = JSON.parse(savedData);
-                
-                // Update lock status based on current date
-                updateLockStatus();
-                
-                // Initialize quests if not present
-                if (!userData.quests || userData.quests.length === 0) {
-                    userData.quests = JSON.parse(JSON.stringify(availableQuests));
-                }
-                
-                // Initialize achievements if not present
-                if (!userData.achievements || userData.achievements.length === 0) {
-                    userData.achievements = JSON.parse(JSON.stringify(availableAchievements));
+                try {
+                    userData = JSON.parse(savedData);
+                    
+                    // Update lock status based on current date
+                    updateLockStatus();
+                    
+                    // Initialize quests if not present
+                    if (!userData.quests || userData.quests.length === 0) {
+                        userData.quests = JSON.parse(JSON.stringify(availableQuests));
+                    }
+                    
+                    // Initialize achievements if not present
+                    if (!userData.achievements || userData.achievements.length === 0) {
+                        userData.achievements = JSON.parse(JSON.stringify(availableAchievements));
+                    }
+                } catch (e) {
+                    console.error("Error parsing saved data:", e);
+                    resetData();
                 }
             } else {
                 // Initialize with empty quests and achievements for new users
                 userData.quests = JSON.parse(JSON.stringify(availableQuests));
                 userData.achievements = JSON.parse(JSON.stringify(availableAchievements));
             }
+        }
+
+        // Reset data if corrupted
+        function resetData() {
+            userData = {
+                totalBalance: 0,
+                boxes: [],
+                transactions: [],
+                points: 0,
+                level: 1,
+                quests: JSON.parse(JSON.stringify(availableQuests)),
+                achievements: JSON.parse(JSON.stringify(availableAchievements))
+            };
         }
 
         // Update lock status based on current date
@@ -350,7 +397,8 @@
 
         // Render boxes list
         function renderBoxes() {
-            boxesList.innerHTML = '';
+            // Use DocumentFragment for better performance
+            const fragment = document.createDocumentFragment();
             
             if (userData.boxes.length === 0) {
                 boxesList.innerHTML = `
@@ -406,13 +454,18 @@
                     ` : ''}
                 `;
                 
-                boxesList.appendChild(boxItem);
+                fragment.appendChild(boxItem);
             });
+            
+            // Clear and update in one operation
+            boxesList.innerHTML = '';
+            boxesList.appendChild(fragment);
         }
 
         // Render transactions list
         function renderTransactions() {
-            transactionsList.innerHTML = '';
+            // Use DocumentFragment for better performance
+            const fragment = document.createDocumentFragment();
             
             if (userData.transactions.length === 0) {
                 transactionsList.innerHTML = `
@@ -439,13 +492,18 @@
                     <div class="transaction-amount spent">-R${transaction.amount.toFixed(2)}</div>
                 `;
                 
-                transactionsList.appendChild(transactionItem);
+                fragment.appendChild(transactionItem);
             });
+            
+            // Clear and update in one operation
+            transactionsList.innerHTML = '';
+            transactionsList.appendChild(fragment);
         }
 
         // Render quests
         function renderQuests() {
-            questsList.innerHTML = '';
+            // Use DocumentFragment for better performance
+            const fragment = document.createDocumentFragment();
             
             userData.quests.forEach(quest => {
                 const questItem = document.createElement('div');
@@ -467,13 +525,18 @@
                     </div>
                 `;
                 
-                questsList.appendChild(questItem);
+                fragment.appendChild(questItem);
             });
+            
+            // Clear and update in one operation
+            questsList.innerHTML = '';
+            questsList.appendChild(fragment);
         }
 
         // Render achievements
         function renderAchievements() {
-            achievementsList.innerHTML = '';
+            // Use DocumentFragment for better performance
+            const fragment = document.createDocumentFragment();
             
             userData.achievements.forEach(achievement => {
                 const achievementItem = document.createElement('div');
@@ -487,28 +550,31 @@
                     <div class="achievement-desc">${achievement.description}</div>
                 `;
                 
-                achievementsList.appendChild(achievementItem);
+                fragment.appendChild(achievementItem);
             });
+            
+            // Clear and update in one operation
+            achievementsList.innerHTML = '';
+            achievementsList.appendChild(fragment);
         }
 
         // Add a new box
         function addNewBox(name, type, amount, dueDate = null, startDate = null) {
             const newBox = {
-                id: userData.boxes.length + 1,
+                id: Date.now(), // Use timestamp for unique ID
                 name,
                 type,
                 amount,
-                locked: type === 'fixed' // Fixed expenses are locked until due date
+                locked: type === 'fixed'
             };
             
             if (type === 'fixed') {
                 newBox.dueDate = dueDate;
-                // Set lock status based on due date
                 const today = new Date();
                 const due = new Date(dueDate);
                 newBox.locked = due > today;
             } else {
-                newBox.startDate = startDate;
+                newBox.startDate = startDate || new Date().toISOString().split('T')[0];
                 newBox.unlockedAmount = amount;
             }
             
@@ -526,6 +592,13 @@
             if (newBox.locked) {
                 updateQuestProgress('lock_money', 1);
             }
+            
+            // Check for box-related achievements
+            checkForAchievementProgress('create_box');
+            if (type === 'weekly') {
+                checkForAchievementProgress('create_weekly_box');
+            }
+            checkForAchievementProgress('lock_money');
             
             saveData();
         }
@@ -577,7 +650,7 @@
             // Add transaction
             const description = prompt('What was this expense for?') || 'Miscellaneous';
             const newTransaction = {
-                id: userData.transactions.length + 1,
+                id: Date.now(), // Use timestamp for unique ID
                 boxId,
                 amount,
                 description,
@@ -593,6 +666,9 @@
             
             // Update quest progress for successful transaction
             updateQuestProgress('successful_transactions', 1);
+            
+            // Check for transaction-related achievements
+            checkForAchievementProgress('successful_transactions');
             
             saveData();
             showNotification('Transaction recorded successfully!');
@@ -627,11 +703,12 @@
                     showRewardPopup(completedQuests, earnedPoints, 'quest');
                 }
                 
-                // Check for achievements related to quest completion
+                // Check for achievements related to quest completion and points
                 checkForAchievementProgress('complete_quests');
+                checkForAchievementProgress('earn_points');
+                
+                saveData();
             }
-            
-            saveData();
         }
 
         // Check for achievement progress
@@ -655,30 +732,29 @@
                         }
                         break;
                     case 3: // Weekly Budgeter
-                        if (action === 'create_weekly_box') {
+                        // Check if any box is a weekly type
+                        if (action === 'create_weekly_box' || 
+                            userData.boxes.some(box => box.type === 'weekly')) {
                             earned = true;
                         }
                         break;
                     case 4: // Financial Guardian
-                        if (action === 'lock_money') {
-                            const lockedAmount = userData.boxes
-                                .filter(box => isBoxLocked(box))
-                                .reduce((sum, box) => sum + box.amount, 0);
-                            if (lockedAmount >= 100) {
-                                earned = true;
-                            }
+                        // Calculate locked amount
+                        const lockedAmount = userData.boxes
+                            .filter(box => isBoxLocked(box))
+                            .reduce((sum, box) => sum + box.amount, 0);
+                        if (lockedAmount >= 100) {
+                            earned = true;
                         }
                         break;
                     case 5: // On Track
-                        if (action === 'complete_quests') {
-                            const completedQuests = userData.quests.filter(q => q.completed).length;
-                            if (completedQuests >= 3) {
-                                earned = true;
-                            }
+                        const completedQuests = userData.quests.filter(q => q.completed).length;
+                        if (completedQuests >= 3) {
+                            earned = true;
                         }
                         break;
                     case 6: // Savvy Spender
-                        if (action === 'successful_transactions' && userData.transactions.length >= 10) {
+                        if (userData.transactions.length >= 10) {
                             earned = true;
                         }
                         break;
@@ -709,6 +785,43 @@
                 });
                 
                 saveData();
+            }
+        }
+
+        // Check all achievements on app load
+        function checkAllAchievementsOnLoad() {
+            // Check balance achievement
+            if (userData.totalBalance > 0) {
+                checkForAchievementProgress('set_balance');
+            }
+            
+            // Check box-related achievements
+            if (userData.boxes.length > 0) {
+                checkForAchievementProgress('create_box');
+                
+                // Check for weekly boxes
+                if (userData.boxes.some(box => box.type === 'weekly')) {
+                    checkForAchievementProgress('create_weekly_box');
+                }
+                
+                // Check locked money
+                checkForAchievementProgress('lock_money');
+            }
+            
+            // Check transaction achievements
+            if (userData.transactions.length > 0) {
+                checkForAchievementProgress('successful_transactions');
+            }
+            
+            // Check quest achievements
+            if (userData.quests.some(q => q.completed)) {
+                checkForAchievementProgress('complete_quests');
+            }
+            
+            // Check points and level achievements
+            if (userData.points > 0) {
+                checkForAchievementProgress('earn_points');
+                checkForAchievementProgress('level_up');
             }
         }
 
@@ -763,10 +876,31 @@
             achievementsSection.scrollIntoView({ behavior: 'smooth' });
         }
 
+        // Navigate to specific onboarding step
+        function goToOnboardingStep(stepIndex) {
+            const steps = document.querySelectorAll('.onboarding-step');
+            const dots = document.querySelectorAll('.progress-dot');
+            
+            // Update active dot
+            dots.forEach((dot, index) => {
+                if (index === stepIndex) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+            
+            // Scroll to step
+            onboardingSteps.scrollTo({
+                left: steps[stepIndex].offsetLeft - onboardingSteps.offsetLeft,
+                behavior: 'smooth'
+            });
+        }
+
         // Finish onboarding
         function finishOnboarding() {
             onboarding.style.display = 'none';
-            localStorage.setItem('brdgeBoxOnboarded', 'true');
+            localStorage.setItem('brgeBOnboarded', 'true');
         }
 
         // Initialize the app when the page loads
@@ -779,9 +913,27 @@
             }
             if (event.target === onboarding) {
                 onboarding.style.display = 'none';
-                localStorage.setItem('brdgeBoxOnboarded', 'true');
+                localStorage.setItem('brgeBOnboarded', 'true');
             }
             if (event.target === rewardPopup) {
                 closeRewardPopup();
             }
         };
+
+        // Add event listeners for onboarding steps scrolling
+        onboardingSteps.addEventListener('scroll', debounce(function() {
+            const steps = document.querySelectorAll('.onboarding-step');
+            const dots = document.querySelectorAll('.progress-dot');
+            const scrollPos = onboardingSteps.scrollLeft;
+            const stepWidth = steps[0].offsetWidth + 30; // width + gap
+            
+            const activeIndex = Math.round(scrollPos / stepWidth);
+            
+            dots.forEach((dot, index) => {
+                if (index === activeIndex) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        }, 100));

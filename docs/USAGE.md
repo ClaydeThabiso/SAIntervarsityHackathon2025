@@ -10,8 +10,8 @@
 // TODO: Link your demo video and PowerPoint here
 ```
 Check out the Demos: 
-- [Demo Video](../demo/demo.mp4)
-- [Demo Presentation](../demo/demo.pptx)
+- [Demo Video](demo/demoVideo.mp4)
+- [Demo Presentation](demo/BridgeBox.pdf)
 
 ## 📌 Notes
 ``` c
